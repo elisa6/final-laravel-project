@@ -14,18 +14,29 @@ class PostControllerTest extends TestCase
     public function test_store_method_creates_post()
     {
         $response = $this->post(route('posts.store'), [
-            'title' => 'Título del post',
-            'text' => 'Contenido del post',
-            'category' => 'Categoria del post',
+            'title' => 'Post title',
+            'text' => 'Post content',
+            'category' => 'Post category',
             'status' => 'published',
         ]);
 
         $this->assertDatabaseHas('posts', [
-            'title' => 'Título del post',
-            'text' => 'Contenido del post',
-            'category' => 'Categoria del post',
+            'title' => 'Post title',
+            'text' => 'Post content',
+            'category' => 'Post category',
             'status' => 'published',
         ]);
+
+        $response->assertRedirect(route('posts.index'));
+    }
+
+    public function test_destroy_method_deletes_post()
+    {
+        $post = Post::factory()->create();
+
+        $response = $this->delete(route('posts.destroy', $post));
+
+        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
 
         $response->assertRedirect(route('posts.index'));
     }

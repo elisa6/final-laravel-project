@@ -17,15 +17,45 @@ class CommentControllerTest extends TestCase
         $post = Post::factory()->create();
 
         $response = $this->post(route('comments.store', $post), [
-            'text' => 'Este es un comentario de prueba'
+            'text' => 'This is a test comment'
         ]);
 
         $this->assertDatabaseHas('comments', [
-            'text' => 'Este es un comentario de prueba',
+            'text' => 'This is a test comment',
             'post_id' => $post->id,
             'published' => true
         ]);
 
         $response->assertRedirect(route('comments.index', $post));
+    }
+
+    public function test_update_method_updates_comment()
+    {
+        $post = Post::factory()->create();
+        $comment = Comment::factory()->create(['post_id' => $post->id]);
+
+        $updatedText = 'This an updated comment';
+        $response = $this->put(route('comments.update', [$post, $comment]), [
+            'text' => $updatedText
+        ]);
+
+        $this->assertDatabaseHas('comments', [
+            'id' => $comment->id,
+            'text' => $updatedText
+        ]);
+
+        $response->assertRedirect(route('comments.show', [$post, $comment]));
+    }
+
+    public function test_destroy_method_deletes_comment()
+    {
+        $post = Post::factory()->create();
+        $comment = Comment::factory()->create(['post_id' => $post->id]);
+
+        $response = $this->delete(route('comments.destroy', [$post, $comment]));
+
+        $this->assertDatabaseMissing('comments', ['id' => $comment->id]);
+
+        $response->assertRedirect(route('posts.show', $post));
     }
 }
