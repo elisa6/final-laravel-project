@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
@@ -16,8 +17,16 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::all();
-        return view('posts.index', compact('posts'));
+        if (Auth::check()) {
+            $user = Auth::user();
+            $posts = $user->posts;
+        } else {
+            $posts = Post::where('status', 'published')->get();
+        }
+
+        $categories = $this->categories();
+
+        return view('posts.index', ['posts' => $posts, 'categories' => $categories]);
     }
 
     /**
@@ -25,7 +34,8 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('posts.create');
+        $categories = $this->categories();
+        return view('posts.create', ['categories' => $categories]);
     }
 
     /**
@@ -33,6 +43,8 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
         $post = new Post();
         $post->title = $request->title;
         $post->text = $request->text;
@@ -41,7 +53,7 @@ class PostController extends Controller
         $post->created_at = date('Y-m-d H:i:s');
         $post->updated_at = date('Y-m-d H:i:s');
 
-        $post->save();
+        $user->posts()->save($post);
 
         return Redirect::route('posts.index');
     }
@@ -51,8 +63,9 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        $comments = Comment::where('post_id', $post->id)->get();
-        return view('posts.show', ['post' => $post, 'comments' => $comments]);
+        $comments = $post->comments;
+        $categories = $this->categories();
+        return view('posts.show', ['post' => $post, 'comments' => $comments, 'categories' => $categories]);
     }
 
     /**
@@ -60,7 +73,8 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        return view('posts.edit', ['post' => $post]);
+        $categories = $this->categories();
+        return view('posts.edit', ['post' => $post, 'categories' => $categories]);
     }
 
     /**
@@ -86,5 +100,21 @@ class PostController extends Controller
     {
         $post->delete($post);
         return Redirect::route('posts.index');
+    }
+
+    private function categories()
+    {
+        return [
+            'fashion-and-beauty' => 'Fashion and beauty',
+            'technology' => 'Technology',
+            'home-and-garden' => 'Home and garden',
+            'health-and-wellness' => 'Health and wellness',
+            'travel-and-tourism' => 'Travel and tourism',
+            'personal-finance' => 'Personal finance',
+            'food-and-cooking' => 'Food and cooking',
+            'culture-and-entertainment' => 'Culture and entertainment',
+            'automotive' => 'Automotive',
+            'education-and-learning' => 'Education and learning'
+        ];
     }
 }
