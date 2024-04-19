@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use App\Models\Post;
 use App\Http\Controllers\PostController;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PostControllerTest extends TestCase
@@ -13,18 +14,21 @@ class PostControllerTest extends TestCase
 
     public function test_store_method_creates_post()
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
         $response = $this->post(route('posts.store'), [
             'title' => 'Post title',
             'text' => 'Post content',
             'category' => 'Post category',
-            'status' => 'published',
+            'status' => 'published'
         ]);
 
         $this->assertDatabaseHas('posts', [
             'title' => 'Post title',
             'text' => 'Post content',
             'category' => 'Post category',
-            'status' => 'published',
+            'status' => 'published'
         ]);
 
         $response->assertRedirect(route('posts.index'));
@@ -32,7 +36,8 @@ class PostControllerTest extends TestCase
 
     public function test_destroy_method_deletes_post()
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create(['user_id' => $user->id]);
 
         $response = $this->delete(route('posts.destroy', $post));
 

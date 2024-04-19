@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use Tests\TestCase;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CommentControllerTest extends TestCase
@@ -14,7 +15,8 @@ class CommentControllerTest extends TestCase
 
     public function test_store_method_creates_comment()
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create(['user_id' => $user->id]);
 
         $response = $this->post(route('comments.store', $post), [
             'text' => 'This is a test comment'
@@ -31,7 +33,8 @@ class CommentControllerTest extends TestCase
 
     public function test_update_method_updates_comment()
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create(['user_id' => $user->id]);
         $comment = Comment::factory()->create(['post_id' => $post->id]);
 
         $updatedText = 'This an updated comment';
@@ -49,7 +52,8 @@ class CommentControllerTest extends TestCase
 
     public function test_destroy_method_deletes_comment()
     {
-        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create(['user_id' => $user->id]);
         $comment = Comment::factory()->create(['post_id' => $post->id]);
 
         $response = $this->delete(route('comments.destroy', [$post, $comment]));
